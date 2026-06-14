@@ -529,6 +529,21 @@
         }
 
         .overlay.active ~ .counter { display: block; }
+.overlay.active,
+.overlay.active .overlay-content,
+.overlay.active .zoomed-piece {
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    scrollbar-width: none;    
+    -ms-overflow-style: none;   
+}
+
+.overlay.active::-webkit-scrollbar,
+.overlay.active .overlay-content::-webkit-scrollbar,
+.overlay.active .zoomed-piece::-webkit-scrollbar {
+    display: none;              
+}
 
         @media (max-width: 900px) {
             .zoomed-placard {
