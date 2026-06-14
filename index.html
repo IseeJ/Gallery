@@ -88,7 +88,7 @@
             flex-wrap: wrap;
             justify-content: center;
             align-items: center;
-            gap: 55px 45px;
+            gap: 100px 45px; /*margin btw rows*/
             max-width: 1400px;
             margin: 0 auto;
             position: relative;
@@ -215,10 +215,11 @@
 
         .sz-s .art-img { width: 140px; height: 180px; }
         .sz-m .art-img { width: 220px; height: 280px; }
-        .sz-l .art-img { width: 300px; height: 380px; }
+        .sz-l .art-img { width: 250px; height: 360px; }
         .sz-w .art-img { width: 330px; height: 250px; }
         .sz-t .art-img { width: 170px; height: 320px; }
         .sz-sq .art-img { width: 330px; height: 330px; }
+        .sz-sqsm .art-img { width: 200px; height: 200px; }
 
         .wall-shadow {
             position: absolute;
@@ -557,7 +558,7 @@
         text-shadow: 0 2px 10px rgba(0,0,0,0.4);
     }
 
-    .sz-l .art-img { width: 250px; height: 330px; }
+    .sz-l .art-img { width: 250px; height: 360px; }
     .sz-w .art-img { width: 330px; height: 250px; }
     .sz-t .art-img { width: 140px; height: 260px; }
 
@@ -676,6 +677,19 @@ const artwork = [
     frame: "float",
     size: "l"
 },
+{
+    title: "Blood, Sweat, and Tears",
+    artist: "I-see WJ.",
+    year: "2025 - 2026",
+    medium: "Brass, steel, and LOTS of oil",
+    dims: "1 apple wide",
+    desc: "This contemporary piece is called Lucy Engine, it's built as part of the machine shop training. Made using milling machine, lathe, etc. It took me so long just to fell apart the moment I tested it.",
+    img: "IMG/lucy.png",
+    zoomImg: "IMG/lucy.gif",  
+    frame: "shadowbox",
+    size: "sq"
+},
+
 
 {
     title: "Mlem",
@@ -690,19 +704,6 @@ const artwork = [
 },
 
 {
-    title: "Lucy Engine",
-    artist: "Blood, Sweat, and Tears",
-    year: "2025 - 2026",
-    medium: "Brass, steel, and LOTS of oil",
-    dims: "1 apple wide",
-    desc: "This contemporary piece is part of the machine shop training. Made on milling machine, lathe, etc. It took me so long just to fell apart the moment I tested it.",
-    img: "IMG/lucy.png",
-    zoomImg: "IMG/lucy.gif",  
-    frame: "shadowbox",
-    size: "sq"
-},
-
-{
     title: "My sister",
     artist: "I-see WJ.",
     year: "2026",
@@ -711,13 +712,13 @@ const artwork = [
     desc: "Title is self-explanatory",
     img: "IMG/cat3.JPG",
     frame: "wood",
-    size: "l"
+    size: "sq"
 },
 
 {
     title: "Mr. Quick",
     artist: "I-see WJ.",
-    year: "2026",
+    year: "11 - 13 June 2026",
     medium: "Acrylic on canvas",
     dims: "10 × 10 in.",
     desc: "What an elegant gentleman",
@@ -727,7 +728,64 @@ const artwork = [
     size: "sq"
 },
 
+{
+    title: "Oven",
+    artist: "I-see WJ.",
+    year: "14 - 18 June 2026",
+    medium: "Acrylic on canvas",
+    dims: "10 × 10 in.",
+    desc: "First traditional art commission!!!",
+    img: "IMG/cat5.jpg",
+    frame: "wood",
+    size: "l"
+},
 
+{
+    title: "Mini Oven",
+    artist: "I-see WJ.",
+    year: "14 June 2026",
+    medium: "Acrylic on cardstock",
+    dims: "4 × 4 in.",
+    desc: "A gift cuz this cat is such a cutiee",
+    img: "IMG/cat7.jpg",
+    frame: "modern",
+    size: "sqsm"
+},
+/*{
+    title: "Juice",
+    artist: "I-see WJ.",
+    year: "COMING SOON",
+    medium: "Acrylic on canvas",
+    dims: "8 × 10 in.",
+    desc: "",
+    img: "IMG/juice.png",
+    frame: "float",
+    size: "w"
+},
+
+{
+    title: "Quick post-it",
+    artist: "I-see WJ.",
+    year: "COMING SOON",
+    medium: "Acrylic on canvas",
+    dims: "8 × 10 in.",
+    desc: "",
+    img: "IMG/cat6_1.png",
+    frame: "float",
+    size: "l"
+},
+
+{
+    title: "Chunk",
+    artist: "I-see WJ.",
+    year: "COMING SOON",
+    medium: "Acrylic on canvas",
+    dims: "10 × 8 in.",
+    desc: "",
+    img: "IMG/chunk.png",
+    frame: "float",
+    size: "w"
+},*/
 
 ];
 
