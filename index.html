@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #3a3530;
+            font-family: 'DM Sans', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .gallery-wall {
+            background: 
+                repeating-linear-gradient(90deg, transparent, transparent 200px, rgba(0,0,0,0.02) 200px, rgba(0,0,0,0.02) 201px),
+                repeating-linear-gradient(0deg, transparent, transparent 200px, rgba(0,0,0,0.015) 200px, rgba(0,0,0,0.015) 201px),
+                radial-gradient(ellipse at 30% 20%, #5a5248 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 60%, #4a4238 0%, transparent 60%),
+                radial-gradient(ellipse at 50% 100%, #3a332e 0%, transparent 50%),
+                linear-gradient(180deg, #4d4640 0%, #3a3530 40%, #332e28 100%);
+            min-height: 100vh;
+            position: relative;
+            padding: 80px 40px 120px;
+        }
+
+        .gallery-wall::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .gallery-wall::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 600px 800px at 25% 30%, rgba(255,240,210,0.04) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 700px at 75% 40%, rgba(255,240,210,0.035) 0%, transparent 70%),
+                radial-gradient(ellipse 400px 600px at 50% 50%, rgba(255,240,210,0.03) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wall-title {
+            text-align: center;
+            margin-bottom: 70px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .wall-title h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 300;
+            font-size: 3.2rem;
+            color: rgba(255,245,230,0.7);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .wall-title .line {
+            width: 80px;
+            height: 1px;
+            background: rgba(255,245,230,0.2);
+            margin: 15px auto;
+        }
+
+        .wall-title p {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 300;
+            font-style: italic;
+            font-size: 1rem;
+            color: rgba(255,245,230,0.35);
+            letter-spacing: 0.08em;
+        }
+
+        .artworks-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 55px 45px;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .piece {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .piece:hover { transform: scale(1.02); }
+
+        .piece-spotlight {
+            position: absolute;
+            top: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120%;
+            height: calc(100% + 120px);
+            background: radial-gradient(ellipse at 50% 0%, rgba(255,245,220,0.06) 0%, transparent 65%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wire {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+
+        .wire svg { display: block; }
+
+        .frame { position: relative; z-index: 2; }
+
+        .frame-classic {
+            padding: 22px;
+            background: linear-gradient(145deg, #b8973e, #8b6f2e, #d4aa4f, #9e7e34, #c4993e);
+            border: 1px solid #6b551e;
+            box-shadow:
+                inset 0 0 0 2px #dabb6a, inset 0 0 0 4px #8b6f2e,
+                inset 0 0 0 6px rgba(218,187,106,0.4),
+                inset 3px 3px 10px rgba(0,0,0,0.5),
+                inset -2px -2px 8px rgba(255,220,140,0.15),
+                6px 8px 25px rgba(0,0,0,0.6), 2px 3px 8px rgba(0,0,0,0.4);
+        }
+        .frame-classic .inner-mat { padding: 12px; background: #f0ebe0; box-shadow: inset 0 0 5px rgba(0,0,0,0.1); }
+
+        .frame-modern {
+            padding: 4px;
+            background: #111;
+            box-shadow: inset 0 0 0 1px #333, 4px 6px 20px rgba(0,0,0,0.5);
+        }
+        .frame-modern .inner-mat { padding: 16px; background: #faf8f4; box-shadow: inset 0 0 4px rgba(0,0,0,0.06); }
+
+        .frame-shadowbox {
+            padding: 14px;
+            background: #f5f2ec;
+            box-shadow:
+                inset 0 0 0 1px #e0ddd6, inset 2px 2px 6px rgba(0,0,0,0.08),
+                6px 8px 25px rgba(0,0,0,0.5), 2px 3px 10px rgba(0,0,0,0.35);
+        }
+        .frame-shadowbox .inner-mat { padding: 18px; background: #fff; box-shadow: inset 0 0 8px rgba(0,0,0,0.04); }
+
+        .frame-wood {
+            padding: 16px;
+            background: linear-gradient(170deg, #4a3520, #5e4530, #3d2a18, #5a4028, #4a3520);
+            border: 1px solid #2a1a0e;
+            box-shadow:
+                inset 0 0 0 2px #6b5540, inset 0 0 0 3px #3d2a18,
+                inset 2px 2px 8px rgba(0,0,0,0.5), 6px 8px 25px rgba(0,0,0,0.55);
+            position: relative;
+        }
+        .frame-wood::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(175deg, transparent, transparent 3px, rgba(255,255,255,0.02) 3px, rgba(255,255,255,0.02) 4px);
+            pointer-events: none;
+        }
+        .frame-wood .inner-mat { padding: 6px; background: #2a1e14; box-shadow: inset 0 0 4px rgba(0,0,0,0.3); }
+
+        .frame-baroque {
+            padding: 30px;
+            background: linear-gradient(135deg, #c9a23e, #a8852e, #ddb84e, #9a7828, #c9a23e, #b8932e, #ddb84e);
+            border: 2px solid #705518;
+            position: relative;
+            box-shadow:
+                inset 0 0 0 3px #e0c870, inset 0 0 0 6px #8b6f28,
+                inset 0 0 0 8px #c9a23e, inset 0 0 0 11px #705518,
+                inset 0 0 0 13px rgba(224,200,112,0.3),
+                inset 4px 4px 15px rgba(0,0,0,0.5),
+                inset -3px -3px 10px rgba(255,220,110,0.1),
+                8px 10px 30px rgba(0,0,0,0.6);
+        }
+        .frame-baroque::after {
+            content: '';
+            position: absolute;
+            inset: 16px;
+            border: 1.5px solid rgba(224,200,112,0.35);
+            pointer-events: none;
+        }
+        .frame-baroque .inner-mat { padding: 10px; background: #ece6d8; box-shadow: inset 0 0 6px rgba(0,0,0,0.1); }
+
+        .frame-float { padding: 0; background: none; box-shadow: 5px 7px 20px rgba(0,0,0,0.5); }
+        .frame-float .inner-mat { padding: 0; }
+
+        .art-img {
+            overflow: hidden;
+            line-height: 0;
+            background: #d5cfc5;
+            position: relative;
+        }
+
+        .art-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .sz-s .art-img { width: 140px; height: 180px; }
+        .sz-m .art-img { width: 220px; height: 280px; }
+        .sz-l .art-img { width: 300px; height: 380px; }
+        .sz-w .art-img { width: 340px; height: 210px; }
+        .sz-t .art-img { width: 170px; height: 320px; }
+        .sz-sq .art-img { width: 330px; height: 330px; }
+
+        .wall-shadow {
+            position: absolute;
+            bottom: -10px;
+            left: 8%;
+            right: 8%;
+            height: 20px;
+            background: radial-gradient(ellipse, rgba(0,0,0,0.25) 0%, transparent 70%);
+            z-index: 1;
+            filter: blur(2px);
+        }
+
+        .placard {
+            position: absolute;
+            bottom: -65px;
+            right: -10px;
+            background: #fff;
+            padding: 10px 14px;
+            min-width: 150px;
+            max-width: 200px;
+            box-shadow: 1px 2px 6px rgba(0,0,0,0.2), 0 0 0 0.5px rgba(0,0,0,0.08);
+            z-index: 3;
+        }
+
+        .placard::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(0,0,0,0.04), transparent);
+        }
+
+        .placard .p-artist {
+            font-weight: 500;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #1a1a1a;
+        }
+
+        .placard .p-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-weight: 400;
+            font-size: 0.8rem;
+            color: #333;
+            margin-top: 1px;
+            line-height: 1.3;
+        }
+
+        .placard .p-info {
+            font-weight: 300;
+            font-size: 0.52rem;
+            color: #aaa;
+            margin-top: 3px;
+            line-height: 1.4;
+        }
+
+        /* ── OVERLAY ── */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .overlay.active { display: block; opacity: 1; }
+
+        .overlay-bg {
+            position: absolute;
+            inset: 0;
+            background: rgba(28, 25, 22, 0.92);
+            backdrop-filter: blur(8px);
+        }
+
+        .overlay-content {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .zoomed-piece {
+            display: flex;
+            align-items: flex-start;
+            max-width: 1100px;
+            max-height: 85vh;
+            animation: zoomIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+        }
+
+        @keyframes zoomIn {
+            from { opacity: 0; transform: scale(0.85) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .zoomed-frame { flex-shrink: 0; position: relative; }
+
+        .zoomed-spotlight {
+            position: absolute;
+            top: -100px; left: -50px; right: -50px; bottom: -50px;
+            background: radial-gradient(ellipse at 50% 0%, rgba(255,245,220,0.08) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .zoomed-frame img {
+            max-height: 70vh;
+            max-width: 55vw;
+            object-fit: contain;
+            display: block;
+        }
+
+        .zf-classic {
+            padding: 28px;
+            background: linear-gradient(145deg, #b8973e, #8b6f2e, #d4aa4f, #9e7e34, #c4993e);
+            border: 1px solid #6b551e;
+            box-shadow:
+                inset 0 0 0 2px #dabb6a, inset 0 0 0 4px #8b6f2e,
+                inset 0 0 0 6px rgba(218,187,106,0.4),
+                inset 3px 3px 12px rgba(0,0,0,0.5),
+                8px 10px 35px rgba(0,0,0,0.6);
+        }
+        .zf-classic .zf-mat { padding: 16px; background: #f0ebe0; box-shadow: inset 0 0 6px rgba(0,0,0,0.1); }
+
+        .zf-modern { padding: 5px; background: #111; box-shadow: 6px 8px 30px rgba(0,0,0,0.5); }
+        .zf-modern .zf-mat { padding: 20px; background: #faf8f4; }
+
+        .zf-shadowbox { padding: 16px; background: #f5f2ec; box-shadow: 6px 8px 30px rgba(0,0,0,0.5); }
+        .zf-shadowbox .zf-mat { padding: 22px; background: #fff; }
+
+        .zf-wood {
+            padding: 18px;
+            background: linear-gradient(170deg, #4a3520, #5e4530, #3d2a18, #5a4028, #4a3520);
+            border: 1px solid #2a1a0e;
+            box-shadow:
+                inset 0 0 0 2px #6b5540, inset 0 0 0 3px #3d2a18,
+                inset 2px 2px 8px rgba(0,0,0,0.5), 6px 8px 30px rgba(0,0,0,0.55);
+        }
+        .zf-wood .zf-mat { padding: 8px; background: #2a1e14; }
+
+        .zf-baroque {
+            padding: 36px;
+            background: linear-gradient(135deg, #c9a23e, #a8852e, #ddb84e, #9a7828, #c9a23e);
+            border: 2px solid #705518;
+            box-shadow:
+                inset 0 0 0 3px #e0c870, inset 0 0 0 6px #8b6f28,
+                inset 0 0 0 8px #c9a23e, inset 0 0 0 11px #705518,
+                inset 4px 4px 15px rgba(0,0,0,0.5),
+                8px 10px 35px rgba(0,0,0,0.6);
+        }
+        .zf-baroque .zf-mat { padding: 14px; background: #ece6d8; }
+
+        .zf-float { padding: 0; box-shadow: 6px 8px 30px rgba(0,0,0,0.5); }
+        .zf-float .zf-mat { padding: 0; }
+
+        .zoomed-placard {
+            position: absolute;
+            bottom: -10px;
+            right: -260px;
+            width: 230px;
+            background: #fff;
+            padding: 22px 20px;
+            box-shadow: 2px 3px 10px rgba(0,0,0,0.25), 0 0 0 0.5px rgba(0,0,0,0.06);
+            animation: placardIn 0.6s 0.3s ease both;
+        }
+
+        @keyframes placardIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .zoomed-placard::before,
+        .zoomed-placard::after {
+            content: '';
+            position: absolute;
+            width: 4px; height: 4px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ddd 30%, #bbb 70%);
+            box-shadow: inset 0 0.5px 1px rgba(0,0,0,0.3);
+            top: 8px;
+        }
+        .zoomed-placard::before { left: 8px; }
+        .zoomed-placard::after { right: 8px; }
+
+        .zp-artist {
+            font-weight: 500;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #1a1a1a;
+            margin-top: 4px;
+        }
+
+        .zp-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-weight: 400;
+            font-size: 1.3rem;
+            color: #222;
+            margin-top: 4px;
+            line-height: 1.3;
+        }
+
+        .zp-year {
+            font-weight: 300;
+            font-size: 0.7rem;
+            color: #aaa;
+            margin-top: 2px;
+        }
+
+        .zp-divider {
+            width: 30px;
+            height: 1px;
+            background: #e0ddd6;
+            margin: 14px 0;
+        }
+
+        .zp-medium {
+            font-weight: 300;
+            font-size: 0.65rem;
+            color: #888;
+            line-height: 1.4;
+        }
+
+        .zp-dimensions {
+            font-weight: 300;
+            font-size: 0.6rem;
+            color: #bbb;
+            margin-top: 2px;
+        }
+
+        .zp-description {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 300;
+            font-size: 0.9rem;
+            line-height: 1.65;
+            color: #555;
+            margin-top: 14px;
+        }
+
+        .close-btn {
+            position: fixed;
+            top: 25px; right: 25px;
+            z-index: 200;
+            width: 44px; height: 44px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.05);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: none;
+        }
+
+        .overlay.active ~ .close-btn { display: block; }
+
+        .close-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        .close-btn::before, .close-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 18px; height: 1px;
+            background: rgba(255,245,230,0.6);
+        }
+        .close-btn::before { transform: translate(-50%,-50%) rotate(45deg); }
+        .close-btn::after { transform: translate(-50%,-50%) rotate(-45deg); }
+
+        .nav-arrow {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 200;
+            width: 44px; height: 44px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.03);
+            cursor: pointer;
+            display: none;
+            transition: all 0.3s;
+        }
+
+        .overlay.active ~ .nav-arrow { display: flex; align-items: center; justify-content: center; }
+
+        .nav-arrow:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.25); }
+
+        .nav-arrow svg { stroke: rgba(255,245,230,0.5); stroke-width: 1.5; fill: none; width: 18px; height: 18px; }
+        .nav-arrow:hover svg { stroke: rgba(255,245,230,0.8); }
+
+        .nav-prev { left: 20px; }
+        .nav-next { right: 20px; }
+
+        .counter {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 200;
+            font-size: 0.55rem;
+            font-weight: 300;
+            letter-spacing: 0.2em;
+            color: rgba(255,245,230,0.2);
+            display: none;
+        }
+
+        .overlay.active ~ .counter { display: block; }
+
+        @media (max-width: 900px) {
+            .zoomed-placard {
+                position: relative;
+                bottom: auto; right: auto;
+                width: 100%;
+                margin-top: 0;
+            }
+            .zoomed-piece {
+                flex-direction: column;
+                align-items: center;
+                overflow-y: auto;
+                max-height: 85vh;
+            }
+            .zoomed-frame img { max-width: 85vw; max-height: 50vh; }
+            .overlay-content { padding: 20px; align-items: flex-start; padding-top: 60px; }
+            .gallery-wall { padding: 60px 15px 100px; }
+            .artworks-grid { gap: 40px 20px; }
+            .wall-title h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 3.6rem;
+    color: rgba(255,245,230,0.75);
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+}
+
+            .sz-l .art-img { width: 220px; height: 280px; }
+            .sz-w .art-img { width: 260px; height: 160px; }
+            .sz-t .art-img { width: 140px; height: 260px; }
+            .piece .placard { display: none; }
+        }
+
+        @media (max-width: 500px) {
+            .sz-m .art-img { width: 180px; height: 230px; }
+            .sz-sq .art-img { width: 210px; height: 210px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="gallery-wall">
+    <div class="wall-title"> <h1>Hall of Felines</h1>
+    </div>
+    <div class="artworks-grid" id="wall"></div>
+</div>
+
+<div class="overlay" id="overlay">
+    <div class="overlay-bg" onclick="closeOverlay()"></div>
+    <div class="overlay-content" id="overlayContent"></div>
+</div>
+<button class="close-btn" onclick="closeOverlay()"></button>
+<button class="nav-arrow nav-prev" onclick="nav(-1)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+<button class="nav-arrow nav-next" onclick="nav(1)"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></button>
+<div class="counter" id="counter"></div>
+
+<script>
+/*frame: classic | modern | shadowbox | wood | baroque | float*/
+/*size:  s | m | l | w | t | sq */
+
+const artwork = [
+
+{
+    title: "2 AM: A Self Portrait",
+    artist: "I-see WJ.",
+    year: "2025",
+    medium: "Acrylic and tears on canvas",
+    dims: "6 × 8 in.",
+    desc: "A raw, unflinching portrait of modern existence. The subject clutches his toothbrush not as a tool of hygiene, but as the last remaining symbol of a routine he can no longer be bothered to keep. Critics have called it 'deeply relatable' and 'a cry for help disguised as art.' The artist has declined all interviews.",
+    img: "IMG/cat2.JPG",
+    frame: "float",
+    size: "l"
+},
+
+{
+    title: "Mlem",
+    artist: "I-see WJ.",
+    year: "2024",
+    medium: "Acrylic on canvas",
+    dims: "10 × 8 in.",
+    desc: ":|",
+    img: "IMG/cat1.JPG",
+    frame: "baroque",
+    size: "w"
+},
+
+{
+    title: "Lucy Engine",
+    artist: "Blood, Sweat, and Tears",
+    year: "2025 - 2026",
+    medium: "Brass, steel, and LOTS of oil",
+    dims: "1 apple wide",
+    desc: "This contemporary piece is part of the machine shop training. Made on milling machine, lathe, etc. It took me so long just to fell apart the moment I tested it.",
+    img: "IMG/lucy.png",
+    zoomImg: "IMG/lucy.gif",  
+    frame: "shadowbox",
+    size: "sq"
+},
+
+{
+    title: "My sister",
+    artist: "I-see WJ.",
+    year: "2026",
+    medium: "Acrylic on canvas",
+    dims: "12 × 12 in.",
+    desc: "Title is self-explanatory",
+    img: "IMG/cat3.JPG",
+    frame: "wood",
+    size: "l"
+},
+
+{
+    title: "Mr. Quick",
+    artist: "I-see WJ.",
+    year: "2026",
+    medium: "Acrylic on canvas",
+    dims: "10 × 10 in.",
+    desc: "What an elegant gentleman",
+    img: "IMG/cat4.jpg",
+    /*zoomImg: "quick.png",*/
+    frame: "baroque",
+    size: "sq"
+},
+
+];
+
+
+
+let cur = 0;
+
+function wiresvg(w) {
+    const h = 30, cx = w / 2;
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+        <path d="M ${cx} 0 L ${cx - w*0.28} ${h} M ${cx} 0 L ${cx + w*0.28} ${h}" stroke="rgba(180,170,155,0.3)" stroke-width="0.7" fill="none"/>
+        <circle cx="${cx}" cy="1" r="1.5" fill="rgba(160,150,135,0.4)"/>
+    </svg>`;
+}
+
+function frameW(f, s) {
+    const p = { classic:22, modern:4, shadowbox:14, wood:16, baroque:30, float:0 };
+    const m = { classic:12, modern:16, shadowbox:18, wood:6, baroque:10, float:0 };
+    const sz = { s:140, m:220, l:300, w:340, t:170, sq:230 };
+    return (sz[s]||220) + (p[f]||0)*2 + (m[f]||0)*2;
+}
+
+
+async function getImageSize(src) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            const ratio = img.naturalWidth / img.naturalHeight;
+
+            let size;
+            if (ratio > 1.4) size = "w";        
+            else if (ratio < 0.75) size = "t";  
+            else if (ratio > 1.1) size = "l";   
+            else if (ratio < 0.95) size = "sq";  
+            else size = "m";
+
+            resolve(size);
+        };
+        img.src = src;
+    });
+}
+function renderWall() {
+    document.getElementById('wall').innerHTML = artwork.map((a, i) => {
+        let inner = `<div class="art-img"><img src="${a.img}" alt="${a.title}" loading="lazy"></div>`;
+        if (a.frame !== 'float') inner = `<div class="inner-mat">${inner}</div>`;
+
+        const ww = frameW(a.frame, a.size);
+        const info = [a.year, a.medium].filter(Boolean).join(' · ');
+
+        return `
+        <div class="piece sz-${a.size}" onclick="zoom(${i})"
+            style="margin-top:${(i*7+3)%20-10}px">
+
+            <div class="wire" style="width:${ww}px">${wiresvg(ww)}</div>
+
+            <div class="frame frame-${a.frame}">
+                ${inner}
+            </div>
+
+            <div class="wall-shadow"></div>
+
+            <div class="placard">
+                <div class="p-artist">${a.artist}</div>
+                <div class="p-title">${a.title}</div>
+                <div class="p-info">${info}</div>
+            </div>
+        </div>`;
+    }).join('');
+}
+function zoom(i) {
+    cur = i;
+    const a = artwork[i];
+    document.getElementById('overlayContent').innerHTML = `
+        <div class="zoomed-piece">
+            <div class="zoomed-spotlight"></div>
+            <div class="zoomed-frame zf-${a.frame}">
+                <div class="zf-mat"><img src="${a.zoomImg || a.img}" alt="${a.title}"></div>
+            </div>
+            <div class="zoomed-placard">
+                <div class="zp-artist">${a.artist}</div>
+                <div class="zp-title">${a.title}</div>
+                <div class="zp-year">${a.year}</div>
+                <div class="zp-divider"></div>
+                <div class="zp-medium">${a.medium}</div>
+                <div class="zp-dimensions">${a.dims}</div>
+                ${a.desc ? `<div class="zp-description">${a.desc}</div>` : ''}
+            </div>
+        </div>`;
+    document.getElementById('counter').textContent = `${i + 1} / ${artwork.length}`;
+    document.getElementById('overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeOverlay() {
+    document.getElementById('overlay').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function nav(d) {
+    cur = (cur + d + artwork.length) % artwork.length;
+    zoom(cur);
+}
+
+document.addEventListener('keydown', e => {
+    if (document.getElementById('overlay').classList.contains('active')) {
+        if (e.key === 'Escape') closeOverlay();
+        if (e.key === 'ArrowLeft') nav(-1);
+        if (e.key === 'ArrowRight') nav(1);
+    }
+});
+
+
+function init() {
+    renderWall(); 
+    setTimeout(async () => {
+        const enriched = [];
+
+        for (const a of artwork) {
+            const size = await getImageMeta(a.img);
+            enriched.push({ ...a, size: a.size || size });
+        }
+
+        window.artwork = enriched;
+        renderWall();
+    }, 50);
+}
+
+init();
+
+init();
+</script>
+
+</body>
+</html>
