@@ -83,6 +83,69 @@
             letter-spacing: 0.08em;
         }
 
+
+        .scale-controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 22px;
+        }
+
+        .scale-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 0.62rem;
+            font-weight: 300;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(255,245,230,0.45);
+        }
+
+        .scale-toggle input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .toggle-track {
+            width: 42px;
+            height: 22px;
+            border: 1px solid rgba(255,245,230,0.22);
+            border-radius: 999px;
+            background: rgba(255,255,255,0.04);
+            position: relative;
+            transition: all 0.25s ease;
+        }
+
+        .toggle-track::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 2px;
+            left: 3px;
+            border-radius: 50%;
+            background: rgba(255,245,230,0.45);
+            transition: transform 0.25s ease, background 0.25s ease;
+        }
+
+        .scale-toggle input:checked + .toggle-track {
+            background: rgba(255,245,230,0.12);
+            border-color: rgba(255,245,230,0.38);
+        }
+
+        .scale-toggle input:checked + .toggle-track::after {
+            transform: translateX(18px);
+            background: rgba(255,245,230,0.78);
+        }
+
+        .piece.realistic-size .art-img {
+            width: var(--art-w);
+            height: var(--art-h);
+        }
+
         .artworks-grid {
             display: flex;
             flex-wrap: wrap;
@@ -643,6 +706,13 @@ footer a:hover {
 
 <div class="gallery-wall">
     <div class="wall-title"> <h1>Hall of Felines</h1>
+        <div class="scale-controls">
+            <label class="scale-toggle">
+                <input type="checkbox" id="realisticScaleToggle">
+                <span class="toggle-track" aria-hidden="true"></span>
+                <span></span>
+            </label>
+        </div>
     </div>
     <div class="artworks-grid" id="wall"></div>
 </div>
@@ -682,7 +752,7 @@ const artwork = [
     artist: "I-see WJ.",
     year: "2025 - 2026",
     medium: "Brass, steel, and LOTS of oil",
-    dims: "1 apple wide",
+    dims: "1 apple wide (4.5 x 4.5 in.)",
     desc: "This contemporary piece is called Lucy Engine, it's built as part of the machine shop training. Made using milling machine, lathe, etc. It took me so long just to fell apart the moment I tested it.",
     img: "IMG/lucy.png",
     zoomImg: "IMG/lucy.gif",  
@@ -791,7 +861,9 @@ const artwork = [
 
 
 
+
 let cur = 0;
+artwork.sort(() => Math.random() - 0.5);
 
 function wiresvg(w) {
     const h = 30, cx = w / 2;
@@ -801,13 +873,61 @@ function wiresvg(w) {
     </svg>`;
 }
 
-function frameW(f, s) {
+function getFramePadding(frame) {
     const p = { classic:22, modern:4, shadowbox:14, wood:16, baroque:30, float:0 };
     const m = { classic:12, modern:16, shadowbox:18, wood:6, baroque:10, float:0 };
-    const sz = { s:140, m:220, l:300, w:340, t:170, sq:230 };
-    return (sz[s]||220) + (p[f]||0)*2 + (m[f]||0)*2;
+    return ((p[frame] || 0) + (m[frame] || 0)) * 2;
 }
 
+function presetArtWidth(size) {
+    const sz = { s:140, m:220, l:250, w:330, t:170, sq:330, sqsm:200 };
+    return sz[size] || 220;
+}
+
+function frameW(f, s, artWidth = null) {
+    return (artWidth || presetArtWidth(s)) + getFramePadding(f);
+}
+
+function parseDims(dims) {
+    if (!dims) return null;
+    const match = String(dims).match(/(\d+(?:\.\d+)?)\s*(?:×|x|X|by)\s*(\d+(?:\.\d+)?)/);
+    if (!match) return null;
+
+    const w = parseFloat(match[1]);
+    const h = parseFloat(match[2]);
+    if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) return null;
+    return { w, h };
+}
+
+function realisticArtSize(a) {
+    const parsed = parseDims(a.dims);
+    if (!parsed) return null;
+
+    
+    
+    const pxPerIn = 24;
+    const minSide = 70;
+    const maxSide = 360;
+
+    let w = parsed.w * pxPerIn;
+    let h = parsed.h * pxPerIn;
+
+    const longest = Math.max(w, h);
+    if (longest > maxSide) {
+        const scale = maxSide / longest;
+        w *= scale;
+        h *= scale;
+    }
+
+    const shortest = Math.min(w, h);
+    if (shortest < minSide) {
+        const scale = minSide / shortest;
+        w *= scale;
+        h *= scale;
+    }
+
+    return { w: Math.round(w), h: Math.round(h) };
+}
 
 async function getImageSize(src) {
     return new Promise((resolve) => {
@@ -816,28 +936,40 @@ async function getImageSize(src) {
             const ratio = img.naturalWidth / img.naturalHeight;
 
             let size;
-            if (ratio > 1.4) size = "w";        
-            else if (ratio < 0.75) size = "t";  
-            else if (ratio > 1.1) size = "l";   
-            else if (ratio < 0.95) size = "sq";  
+            if (ratio > 1.4) size = "w";
+            else if (ratio < 0.75) size = "t";
+            else if (ratio > 1.1) size = "l";
+            else if (ratio < 0.95) size = "sq";
             else size = "m";
 
             resolve(size);
         };
+        img.onerror = () => resolve("m");
         img.src = src;
     });
 }
+
+function isRealisticScaleOn() {
+    return document.getElementById('realisticScaleToggle')?.checked;
+}
+
 function renderWall() {
+    const realistic = isRealisticScaleOn();
+
     document.getElementById('wall').innerHTML = artwork.map((a, i) => {
+        const real = realistic ? realisticArtSize(a) : null;
+        const artStyle = real ? ` style="--art-w:${real.w}px; --art-h:${real.h}px"` : '';
+        const pieceClass = real ? `piece sz-${a.size} realistic-size` : `piece sz-${a.size}`;
+
         let inner = `<div class="art-img"><img src="${a.img}" alt="${a.title}" loading="lazy"></div>`;
         if (a.frame !== 'float') inner = `<div class="inner-mat">${inner}</div>`;
 
-        const ww = frameW(a.frame, a.size);
+        const ww = frameW(a.frame, a.size, real?.w);
         const info = [a.year, a.medium].filter(Boolean).join(' · ');
 
         return `
-        <div class="piece sz-${a.size}" onclick="zoom(${i})"
-            style="margin-top:${(i*7+3)%20-10}px">
+        <div class="${pieceClass}" onclick="zoom(${i})"
+            style="margin-top:${(i*7+3)%20-10}px;${artStyle ? artStyle.slice(8, -1) : ''}">
 
             <div class="wire" style="width:${ww}px">${wiresvg(ww)}</div>
 
@@ -897,23 +1029,10 @@ document.addEventListener('keydown', e => {
     }
 });
 
-
 function init() {
-    renderWall(); 
-    setTimeout(async () => {
-        const enriched = [];
-
-        for (const a of artwork) {
-            const size = await getImageMeta(a.img);
-            enriched.push({ ...a, size: a.size || size });
-        }
-
-        window.artwork = enriched;
-        renderWall();
-    }, 50);
+    document.getElementById('realisticScaleToggle')?.addEventListener('change', renderWall);
+    renderWall();
 }
-
-init();
 
 init();
 </script>
