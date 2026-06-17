@@ -274,6 +274,17 @@
             height: 100%;
             object-fit: cover;
             display: block;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .art-img img.loaded,
+        .zoomed-frame img.loaded {
+            opacity: 1;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .art-img img { transition: none; }
         }
 
         .sz-s .art-img { width: 140px; height: 180px; }
@@ -397,6 +408,8 @@
             max-width: 55vw;
             object-fit: contain;
             display: block;
+            opacity: 0;
+            transition: opacity 0.25s ease;
         }
 
         .zf-classic {
@@ -625,12 +638,10 @@
     .sz-w .art-img { width: 330px; height: 250px; }
     .sz-t .art-img { width: 140px; height: 260px; }
 
-    /* Hide placards on gallery wall */
     .piece .placard {
         display: none;
     }
 
-    /* Zoom view */
     .overlay-content {
         padding: 70px 20px;
         align-items: flex-start;
@@ -893,6 +904,47 @@ const artwork = [
 let cur = 0;
 artwork.sort(() => Math.random() - 0.5);
 
+const preloadedImages = new Set();
+const blankImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E";
+
+function escapeAttr(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+function wallImg(a, i) {
+    const eager = i < 2;
+    return `<img
+        src="${escapeAttr(a.img)}"
+        alt="${escapeAttr(a.title)}"
+        loading="${eager ? 'eager' : 'lazy'}"
+        decoding="async"
+        fetchpriority="${eager ? 'high' : 'low'}"
+        onload="this.classList.add('loaded')">`;
+}
+
+function preloadImage(src) {
+    if (!src || preloadedImages.has(src)) return;
+    preloadedImages.add(src);
+    const img = new Image();
+    img.decoding = 'async';
+    img.src = src;
+}
+
+function preloadZoomImage(i) {
+    const a = artwork[i];
+    preloadImage(a?.zoomImg || a?.img);
+}
+
+function idlePreloadVisibleZoomImages() {
+    const run = () => artwork.slice(0, 3).forEach((_, i) => preloadZoomImage(i));
+    if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 1500 });
+    else setTimeout(run, 600);
+}
+
 function wiresvg(w) {
     const h = 30, cx = w / 2;
     return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
@@ -989,14 +1041,14 @@ function renderWall() {
         const artStyle = real ? ` style="--art-w:${real.w}px; --art-h:${real.h}px"` : '';
         const pieceClass = real ? `piece sz-${a.size} realistic-size` : `piece sz-${a.size}`;
 
-        let inner = `<div class="art-img"><img src="${a.img}" alt="${a.title}" loading="lazy"></div>`;
+        let inner = `<div class="art-img">${wallImg(a, i)}</div>`;
         if (a.frame !== 'float') inner = `<div class="inner-mat">${inner}</div>`;
 
         const ww = frameW(a.frame, a.size, real?.w);
         const info = [a.year, a.medium].filter(Boolean).join(' · ');
 
         return `
-        <div class="${pieceClass}" onclick="zoom(${i})"
+        <div class="${pieceClass}" onclick="zoom(${i})" onmouseenter="preloadZoomImage(${i})" onfocus="preloadZoomImage(${i})" tabindex="0"
             style="margin-top:${(i*7+3)%20-10}px;${artStyle ? artStyle.slice(8, -1) : ''}">
 
             <div class="wire" style="width:${ww}px">${wiresvg(ww)}</div>
@@ -1022,7 +1074,7 @@ function zoom(i) {
         <div class="zoomed-piece">
             <div class="zoomed-spotlight"></div>
             <div class="zoomed-frame zf-${a.frame}">
-                <div class="zf-mat"><img src="${a.zoomImg || a.img}" alt="${a.title}"></div>
+                <div class="zf-mat"><img src="${escapeAttr(a.zoomImg || a.img)}" alt="${escapeAttr(a.title)}" loading="eager" decoding="async" fetchpriority="high" onload="this.classList.add('loaded')"></div>
             </div>
             <div class="zoomed-placard">
                 <div class="zp-artist">${a.artist}</div>
@@ -1060,6 +1112,7 @@ document.addEventListener('keydown', e => {
 function init() {
     document.getElementById('realisticScaleToggle')?.addEventListener('change', renderWall);
     renderWall();
+    idlePreloadVisibleZoomImages();
 }
 
 init();
